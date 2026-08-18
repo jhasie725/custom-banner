@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hardcore Minecraft Banner Generator</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #1e1e24; color: #fff; margin: 0; padding: 20px; text-align: center; }
+        h1 { color: #55ff55; text-shadow: 2px 2px #000; }
+        .tagline { color: #aaa; margin-bottom: 25px; }
+
+        .search-box { margin: 20px auto; max-width: 550px; display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 12px; font-size: 16px; border-radius: 6px; border: 1px solid #444; background: #2a2a32; color: #fff; }
+        button { padding: 12px 20px; font-size: 16px; background-color: #55ff55; color: #000; font-weight: bold; border: none; border-radius: 6px; cursor: pointer; }
+        button:hover { background-color: #33cc33; }
+
+        .quick-chips { margin-bottom: 25px; }
+        .chip { display: inline-block; background: #2a2a32; padding: 8px 14px; margin: 4px; border-radius: 16px; cursor: pointer; font-size: 14px; border: 1px solid #444; }
+        .chip:hover { border-color: #55ff55; color: #55ff55; }
+
+        .result-panel { display: none; margin: 30px auto; max-width: 650px; text-align: left; }
+        
+        .card { background: #2a2a32; padding: 20px; border-radius: 8px; border: 1px solid #444; margin-bottom: 20px; }
+        .card h2 { margin-top: 0; color: #ffff55; border-bottom: 1px solid #444; padding-bottom: 10px; font-size: 18px; }
+
+        .warning-box { background: #3a2a1a; border-left: 4px solid #ffaa00; padding: 12px; margin-bottom: 15px; border-radius: 4px; display: none; font-size: 14px; }
+
+        ul { padding-left: 20px; margin: 10px 0; }
+        li { margin-bottom: 8px; line-height: 1.4; }
+        .farming-tip { font-size: 13px; color: #aaa; display: block; }
+
+        .step-number { display: inline-block; background: #55ff55; color: #000; font-weight: bold; width: 24px; height: 24px; border-radius: 50%; text-align: center; line-height: 24px; margin-right: 8px; font-size: 14px; }
+        .loom-step { display: flex; align-items: center; margin-bottom: 12px; background: #1e1e24; padding: 10px; border-radius: 6px; border: 1px solid #333; }
+    </style>
+</head>
+<body>
+
+    <h1>Hardcore Banner Designer</h1>
+    <p class="tagline">Check required items, hard-to-find components, and loom steps for survival.</p>
+
+    <div class="quick-chips">
+        <span class="chip" onclick="quickSearch('pirate')">🏴‍☠️ Pirate Skull</span>
+        <span class="chip" onclick="quickSearch('creeper')">🟢 Creeper Face</span>
+        <span class="chip" onclick="quickSearch('shield')">🛡️ Knight Shield</span>
+    </div>
+
+    <div class="search-box">
+        <input type="text" id="userInput" placeholder="Search design (e.g., pirate, creeper, shield)">
+        <button onclick="generateBanner()">Generate Guide</button>
+    </div>
+
+    <div id="result" class="result-panel">
+        
+        <div id="warning" class="warning-box">
+            <strong>Survival Limit Notice:</strong> Design optimized to fit within Minecraft's 6-layer loom ceiling.
+        </div>
+
+        <div class="card">
+            <h2>📦 Required Items & Hardcore Farming Tips</h2>
+            <div id="materialsList"></div>
+        </div>
+
+        <div class="card">
+            <h2>🧵 Step-by-Step Loom Guide</h2>
+            <div id="stepsList"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const bannerDatabase = {
+            "pirate": {
+                name: "Pirate Skull & Crossbones",
+                exceededLimit: false,
+                materials: [
+                    "<strong>1x Black Banner:</strong> Crafted with 6 Black Wool + 1 Stick.",
+                    "<strong>1x White Dye:</strong> Crafted from Bone Meal (obtained from skeletons).",
+                    "<strong>1x Skull Charge Pattern:</strong> <span class='farming-tip'>⚠️ Hard item: Requires killing a Wither Skeleton in a Nether Fortress using a charged creeper explosion, OR looting a Nether Fortress structure. Combine Wither Skeleton Skull + Paper in a crafting table.</span>"
+                ],
+                steps: [
+                    "Place <strong>Black Banner</strong> in Loom.",
+                    "Add <strong>White Dye</strong> and select the <strong>Cross (Saltire)</strong> pattern.",
+                    "Add <strong>White Dye</strong> + <strong>Skull Charge Pattern</strong> to apply the skull icon."
+                ]
+            },
+            "creeper": {
+                name: "Creeper Face Banner",
+                exceededLimit: false,
+                materials: [
+                    "<strong>1x Lime Banner:</strong> Crafted with 6 Lime Wool (Green Dye + White Dye on wool) + 1 Stick.",
+                    "<strong>1x Black Dye:</strong> Dropped by squids or crafted from ink sacs/wither roses.",
+                    "<strong>1x Creeper Charge Pattern:</strong> <span class='farming-tip'>⚠️ Hard item: Obtain a Creeper Head by killing a creeper with a charged creeper explosion. Combine Creeper Head + Paper in a crafting table.</span>"
+                ],
+                steps: [
+                    "Place <strong>Lime Banner</strong> in Loom.",
+                    "Add <strong>Black Dye</strong> + <strong>Creeper Charge Pattern</strong> to apply the face."
+                ]
+            },
+            "shield": {
+                name: "Knight Shield Emblem",
+                exceededLimit: false,
+                materials: [
+                    "<strong>1x Blue Banner:</strong> Crafted with 6 Blue Wool (Lapis Lazuli + Wool) + 1 Stick.",
+                    "<strong>Yellow Dye & White Dye & Red Dye:</strong> <span class='farming-tip'>Gathered from Dandelions/Sunflowers (Yellow), Bone Meal (White), and Poppies/Beetroot (Red).</span>"
+                ],
+                steps: [
+                    "Place <strong>Blue Banner</strong> in Loom.",
+                    "Add <strong>Yellow Dye</strong> and select <strong>Pale Dexter (Left Stripe)</strong>.",
+                    "Add <strong>White Dye</strong> and select <strong>Border</strong> pattern.",
+                    "Add <strong>Red Dye</strong> and select <strong>Centered Cross</strong>."
+                ]
+            }
+        };
+
+        function quickSearch(term) {
+            document.getElementById('userInput').value = term;
+            generateBanner();
+        }
+
+        function generateBanner() {
+            const query = document.getElementById('userInput').value.toLowerCase().trim();
+            const resultDiv = document.getElementById('result');
+            const warningDiv = document.getElementById('warning');
+            const materialsList = document.getElementById('materialsList');
+            const stepsList = document.getElementById('stepsList');
+
+            let key = Object.keys(bannerDatabase).find(k => query.includes(k));
+            if (!key) key = "pirate"; // default fallback
+
+            const data = bannerDatabase[key];
+
+            warningDiv.style.display = data.exceededLimit ? 'block' : 'none';
+
+            let matHTML = "<ul>";
+            data.materials.forEach(item => {
+                matHTML += `<li>${item}</li>`;
+            });
+            matHTML += "</ul>";
+            materialsList.innerHTML = matHTML;
+
+            let stepHTML = "";
+            data.steps.forEach((step, index) => {
+                stepHTML += `
+                    <div class="loom-step">
+                        <span class="step-number">${index + 1}</span>
+                        <div>${step}</div>
+                    </div>
+                `;
+            });
+            stepsList.innerHTML = stepHTML;
+
+            resultDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
