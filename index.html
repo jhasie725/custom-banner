@@ -24,6 +24,10 @@
         .card { background: #2a2a32; padding: 20px; border-radius: 8px; border: 1px solid #444; margin-bottom: 20px; }
         .card h2 { margin-top: 0; color: #ffff55; border-bottom: 1px solid #444; padding-bottom: 10px; font-size: 18px; }
 
+        /* Canvas Preview Styling */
+        .preview-container { text-align: center; background: #15151a; padding: 15px; border-radius: 6px; border: 1px solid #333; }
+        canvas { background: #222; border-radius: 4px; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+
         .warning-box { background: #3a2a1a; border-left: 4px solid #ffaa00; padding: 12px; margin-bottom: 15px; border-radius: 4px; display: none; font-size: 14px; }
 
         ul { padding-left: 20px; margin: 10px 0; }
@@ -37,7 +41,7 @@
 <body>
 
     <h1>Hardcore Banner Designer</h1>
-    <p class="tagline">Check required items, hard-to-find components, and loom steps for survival.</p>
+    <p class="tagline">Preview designs visually, check required survival items, and follow step-by-step loom guides.</p>
 
     <div class="quick-chips">
         <span class="chip" onclick="quickSearch('pirate')">🏴‍☠️ Pirate Skull</span>
@@ -57,6 +61,13 @@
         </div>
 
         <div class="card">
+            <h2>🎨 Visual Banner Preview</h2>
+            <div class="preview-container">
+                <canvas id="bannerCanvas" width="160" height="220"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
             <h2>📦 Required Items & Hardcore Farming Tips</h2>
             <div id="materialsList"></div>
         </div>
@@ -72,6 +83,9 @@
         const bannerDatabase = {
             "pirate": {
                 name: "Pirate Skull & Crossbones",
+                baseColor: "#111111", // Black banner
+                patternColor: "#FFFFFF", // White dye
+                type: "skull",
                 exceededLimit: false,
                 materials: [
                     "<strong>1x Black Banner:</strong> Crafted with 6 Black Wool + 1 Stick.",
@@ -86,10 +100,13 @@
             },
             "creeper": {
                 name: "Creeper Face Banner",
+                baseColor: "#55FF55", // Lime banner
+                patternColor: "#111111", // Black dye
+                type: "creeper",
                 exceededLimit: false,
                 materials: [
-                    "<strong>1x Lime Banner:</strong> Crafted with 6 Lime Wool (Green Dye + White Dye on wool) + 1 Stick.",
-                    "<strong>1x Black Dye:</strong> Dropped by squids or crafted from ink sacs/wither roses.",
+                    "<strong>1x Lime Banner:</strong> Crafted with 6 Lime Wool + 1 Stick.",
+                    "<strong>1x Black Dye:</strong> Dropped by squids or crafted from ink sacs.",
                     "<strong>1x Creeper Charge Pattern:</strong> <span class='farming-tip'>⚠️ Hard item: Obtain a Creeper Head by killing a creeper with a charged creeper explosion. Combine Creeper Head + Paper in a crafting table.</span>"
                 ],
                 steps: [
@@ -99,9 +116,12 @@
             },
             "shield": {
                 name: "Knight Shield Emblem",
+                baseColor: "#3333FF", // Blue banner
+                patternColor: "#FFFF55", // Yellow dye
+                type: "shield",
                 exceededLimit: false,
                 materials: [
-                    "<strong>1x Blue Banner:</strong> Crafted with 6 Blue Wool (Lapis Lazuli + Wool) + 1 Stick.",
+                    "<strong>1x Blue Banner:</strong> Crafted with 6 Blue Wool + 1 Stick.",
                     "<strong>Yellow Dye & White Dye & Red Dye:</strong> <span class='farming-tip'>Gathered from Dandelions/Sunflowers (Yellow), Bone Meal (White), and Poppies/Beetroot (Red).</span>"
                 ],
                 steps: [
@@ -118,6 +138,58 @@
             generateBanner();
         }
 
+        function drawBannerCanvas(baseColor, patternColor, type) {
+            const canvas = document.getElementById('bannerCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw pole / backdrop hook
+            ctx.fillStyle = "#8b5a2b";
+            ctx.fillRect(75, 10, 10, 30);
+
+            // Draw Banner Cloth Base
+            ctx.fillStyle = baseColor;
+            ctx.fillRect(35, 30, 90, 160);
+
+            // Draw patterns based on type
+            if (type === "skull") {
+                // Draw cross saltire
+                ctx.strokeStyle = patternColor;
+                ctx.lineWidth = 14;
+                ctx.beginPath();
+                ctx.moveTo(35, 30); ctx.lineTo(125, 190);
+                ctx.moveTo(125, 30); ctx.lineTo(35, 190);
+                ctx.stroke();
+
+                // Draw skull center box
+                ctx.fillStyle = patternColor;
+                ctx.fillRect(65, 85, 30, 40);
+            } else if (type === "creeper") {
+                // Draw creeper face placeholder representation
+                ctx.fillStyle = patternColor;
+                ctx.fillRect(55, 60, 50, 70); // Head outline
+                // Cut out eyes/mouth with base color
+                ctx.fillStyle = baseColor;
+                ctx.fillRect(65, 75, 10, 15); // Left eye
+                ctx.fillRect(85, 75, 10, 15); // Right eye
+                ctx.fillRect(72, 95, 16, 20); // Nose/mouth
+            } else if (type === "shield") {
+                // Left stripe
+                ctx.fillStyle = patternColor;
+                ctx.fillRect(35, 30, 30, 160);
+                // Center cross
+                ctx.fillStyle = "#FF5555";
+                ctx.fillRect(35, 95, 90, 30);
+            }
+
+            // Draw border outline around banner cloth
+            ctx.strokeStyle = "#000000";
+            ctx.lineWidth = 3;
+            ctx.strokeRect(35, 30, 90, 160);
+        }
+
         function generateBanner() {
             const query = document.getElementById('userInput').value.toLowerCase().trim();
             const resultDiv = document.getElementById('result');
@@ -131,6 +203,9 @@
             const data = bannerDatabase[key];
 
             warningDiv.style.display = data.exceededLimit ? 'block' : 'none';
+
+            // Draw visual preview on HTML5 Canvas
+            drawBannerCanvas(data.baseColor, data.patternColor, data.type);
 
             let matHTML = "<ul>";
             data.materials.forEach(item => {
